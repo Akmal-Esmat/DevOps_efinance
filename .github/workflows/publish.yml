@@ -7,7 +7,7 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
 
       # The Checkout step clones the Git repository.
