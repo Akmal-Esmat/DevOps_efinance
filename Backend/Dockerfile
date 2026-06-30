@@ -1,0 +1,25 @@
+FROM python:3.13.3-slim
+
+# ENV OPENROUTER_API_KEY = //
+
+# SPECIFY WORKING DIRECTORY
+WORKDIR /app
+
+# copy requirements.txt and put it in the working directory (why not just not put it in .dockerignore?)
+COPY requirements.txt .
+
+# build
+# --upgrade -> Upgrade all specified packages to the newest available version.
+# --no-cache-dir -> disable cashing
+# -r -> Install from the given requirements file. This option can be used multiple times.
+# RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt  (this is the best practice)
+
+RUN pip install -r requirements.txt
+
+# not sure!
+COPY main.py /app
+
+EXPOSE 8000
+
+# run
+CMD [ "fastapi", "dev", "/app/main.py", "--host", "0.0.0.0"]
