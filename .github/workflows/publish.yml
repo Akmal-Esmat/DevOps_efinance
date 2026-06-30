@@ -28,7 +28,7 @@ jobs:
         run: docker compose build
 
       - name: Push frontend
-        run: docker push ${{secrets.DOCKERHUB_USERNAME}}/ef-frontend:latest
+        run: docker push ef-frontend:latest
 
       - name: Push backend
-        run: docker push ${{secrets.DOCKERHUB_USERNAME}}/ef-backend:latest
+        run: docker push ef-backend:latest
