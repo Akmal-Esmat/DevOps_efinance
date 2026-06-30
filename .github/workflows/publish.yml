@@ -21,8 +21,10 @@ jobs:
             username: ${{secrets.DOCKERHUB_USERNAME}}
             # Password or token to connect to Docker registry
             password: ${{secrets.DOCKERHUB_TOKEN}}
-        
+              
       - name: Build images
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: docker compose build
 
       - name: Push frontend
