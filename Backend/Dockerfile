@@ -21,5 +21,8 @@ COPY main.py /app
 
 EXPOSE 8000
 
+# This line satisfies Trivy by switching to the built-in Linux 'nobody' user
+USER 65534
+
 # run
 CMD [ "fastapi", "dev", "/app/main.py", "--host", "0.0.0.0"]

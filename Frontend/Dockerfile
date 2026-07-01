@@ -14,6 +14,10 @@ EXPOSE 3000
 # Build the application (create compiles .next/)
 RUN npm run build
 
+
+# This line switches to the built-in 'node' user to satisfy Trivy
+USER node
+
 # run
 # CMD [ "npm", "run", "dev", "--host", "0.0.0.0"]
 # 5. Run the optimized production server
