@@ -12,19 +12,22 @@ jobs:
         # The Checkout step clones the Git repository.
       - name: Checkout
         uses: actions/checkout@v7.0.0
-        # debug
-      - name: List Backend
-        run: ls -R Backend
         
-      - name: Aqua Security Trivy
+      - name: Scan files
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
+          # vuln is the default
+          # secret is for hard coded secrets
+          # misconfig is for insecure Dockerfiles, Kubernetes manifests,...
+          scanners: vuln,secret,misconfig
           # fail if high/critical severity
           severity: HIGH,CRITICAL
           exit-code: '1'
+          
   publish:
+    needs: SCA
     runs-on: ubuntu-latest
     steps:
 
@@ -44,6 +47,22 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: docker compose build
+
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ef-frontend:latest
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+    
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ef-backend:latest
+          severity: HIGH,CRITICAL
+          exit-code: '1'
       
       - name: Show local images
         run: docker images
