@@ -1,8 +1,13 @@
 # Trivy did not detect.
+# fastapi[standard]
+# uvicorn[standard]
+# openai
+# python-dotenv >= 1.2.2
+
 fastapi[standard]
 uvicorn[standard]
 openai
-python-dotenv >= 1.2.2
+python-dotenv == 1.2.2
 
 # Trivy did detect and broke (broken versions, all have their versions).
 # fastapi[standard]==0.65.0
