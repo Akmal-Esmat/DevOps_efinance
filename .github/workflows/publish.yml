@@ -31,10 +31,10 @@ jobs:
         run: docker images
       
       - name: Tag frontend
-        run: docker tag ef-frontend:latest ${{ secrets.DOCKERHUB_USERNAME }}/akmal-frontend
+        run: docker tag ef-frontend:latest ${{ secrets.DOCKERHUB_USERNAME }}/ef-frontend
       
       - name: Push frontend
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/akmal-frontend:latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/ef-frontend:latest
 
       - name: Tag backend
         run: docker tag ef-backend:latest ${{ secrets.DOCKERHUB_USERNAME }}/ef-backend
