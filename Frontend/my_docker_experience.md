@@ -95,7 +95,8 @@ docker rm <docker container id/name>
 docker rmi <docker image id/name>
 docker compose up
 docker compose down
--name hello (not sure where is this name / name vs tag)
+docker push <image name>: <tag (version)>, deploy on dockerhub with a repositories with the same image name
+( -t (--tag) is name for the image, --name is name for the container)
 docker 
     VIM: vi: run this file (ex: vi run.sh)
         :x -> write (save) and quit
