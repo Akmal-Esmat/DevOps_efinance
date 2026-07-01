@@ -16,7 +16,7 @@ jobs:
       - name: List Backend
         run: ls -R Backend
         
-      - name: Aqua Security Trivy
+      - name: Scan files
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
@@ -24,6 +24,23 @@ jobs:
           # fail if high/critical severity
           severity: HIGH,CRITICAL
           exit-code: '1'
+
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ef-frontend:latest
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+    
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ef-backend:latest
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          
   publish:
     runs-on: ubuntu-latest
     steps:
