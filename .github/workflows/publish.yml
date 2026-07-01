@@ -6,11 +6,26 @@ on:
       - main
 
 jobs:
+  SCA:
+    runs-on: ubuntu-latest
+    steps:
+        # The Checkout step clones the Git repository.
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+        
+      - name: Aqua Security Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          # fail if high/critical severity
+          severity: HIGH,CRITICAL
+          exit-code: '1'
   publish:
     runs-on: ubuntu-latest
     steps:
 
-      # The Checkout step clones the Git repository.
+      # The Checkout step clones the Git repository again (each job is independent).
       - name: Checkout
         uses: actions/checkout@v7.0.0
         
