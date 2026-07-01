@@ -12,6 +12,9 @@ jobs:
         # The Checkout step clones the Git repository.
       - name: Checkout
         uses: actions/checkout@v7.0.0
+        # debug
+      - name: List Backend
+        run: ls -R Backend
         
       - name: Aqua Security Trivy
         uses: aquasecurity/trivy-action@v0.36.0
