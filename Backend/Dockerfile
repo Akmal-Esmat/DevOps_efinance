@@ -25,4 +25,5 @@ EXPOSE 8000
 USER 65534
 
 # run
-CMD [ "fastapi", "dev", "/app/main.py", "--host", "0.0.0.0"]
+# or can do this (but this will be on the development server -> meaning it will listen on local host of the container and cannot be binded to my laptop)
+CMD [ "fastapi", "run", "/app/main.py"]
