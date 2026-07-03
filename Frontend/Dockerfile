@@ -4,9 +4,15 @@ FROM node:${NODE_VERSION}-alpine
 # SPECIFY WORKING DIRECTORY
 WORKDIR /app
 
-COPY . .
+# COPY . .
+
+# RUN npm install
+
+COPY package.json package-lock.json ./
 
 RUN npm install
+
+COPY . .
 
 EXPOSE 3000
 
