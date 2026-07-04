@@ -48,7 +48,7 @@ jobs:
       - run: npm test --prefix Frontend
       
   publish:
-    needs: SCA
+    needs: [SCA, test-backend, test-frontend]
     runs-on: ubuntu-latest
     steps:
 
