@@ -34,6 +34,7 @@ jobs:
         with:
           name: sca-report
           path: sca-report.json
+          retention-days: 1
           
   test-backend:
     runs-on: ubuntu-latest
@@ -52,6 +53,7 @@ jobs:
         with:
           name: backend-report
           path: backend-report.xml
+          retention-days: 1
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -69,6 +71,7 @@ jobs:
         with:
           name: frontend-report
           path: Frontend/frontend-report.json
+          retention-days: 1
       
   publish:
     needs: [SCA, test-backend, test-frontend]
@@ -120,6 +123,7 @@ jobs:
           path: |
             frontend-image-report.json
             backend-image-report.json
+          retention-days: 1
       
       - name: Show local images
         run: docker images
@@ -205,6 +209,7 @@ jobs:
         with:
           name: final-report
           path: final-report.html
+          retention-days: 1
 
       - name: Send email
         uses: dawidd6/action-send-mail@v3
