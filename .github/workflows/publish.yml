@@ -25,6 +25,8 @@ jobs:
           # fail if high/critical severity
           severity: HIGH,CRITICAL
           exit-code: '1'
+          format: json
+          output: sca-report.json
           
   test-backend:
     runs-on: ubuntu-latest
