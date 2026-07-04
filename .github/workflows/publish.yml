@@ -179,7 +179,7 @@ jobs:
       - name: Fill HTML template
         run: |
           sed -e "s/__RUN_NUMBER__/${{ github.run_number }}/" \
-              -e "s/__REPO__/${{ github.repository }}/" \
+              -e "s|__REPO__/${{ github.repository }}|" \
               -e "s/__SHA__/${{ github.sha }}/" \
               -e "s/__SCA_CRIT__/$SCA_CRIT/" -e "s/__SCA_HIGH__/$SCA_HIGH/" \
               -e "s/__SCA_MED__/$SCA_MED/" -e "s/__SCA_LOW__/$SCA_LOW/" \
