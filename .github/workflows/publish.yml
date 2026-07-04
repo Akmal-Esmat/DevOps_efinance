@@ -25,9 +25,8 @@ jobs:
           # fail if high/critical severity
           severity: HIGH,CRITICAL
           exit-code: '1'
-          format: template
-          template: '@contrib/html.tpl'
-          output: sca-report.html
+          format: json
+          output: sca-report.json
 
       - name: Upload SCA report
         if: always() # run even if a previous step failed
@@ -45,7 +44,14 @@ jobs:
           python-version: '3.13'
       - run: pip install -r Backend/requirements.txt
       - run: pip install -r Backend/requirements-dev.txt
-      - run: pytest Backend/
+      - run: pytest Backend/ --junitxml=backend-report.xml
+
+      - name: Upload backend test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-report
+          path: backend-report.xml
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -55,7 +61,14 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --prefix Frontend
-      - run: npm test --prefix Frontend
+      - run: npm test --prefix Frontend -- --json --outputFile=frontend-report.json
+
+      - name: Upload frontend test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-report
+          path: Frontend/frontend-report.json
       
   publish:
     needs: [SCA, test-backend, test-frontend]
@@ -86,6 +99,8 @@ jobs:
           image-ref: ef-frontend:latest
           # severity: HIGH,CRITICAL
           # exit-code: '1'
+          format: json
+          output: frontend-image-report.json
     
       - name: Scan backend image
         uses: aquasecurity/trivy-action@v0.36.0
@@ -94,6 +109,17 @@ jobs:
           image-ref: ef-backend:latest
           # severity: HIGH,CRITICAL
           # exit-code: '1'
+          format: json
+          output: backend-image-report.json
+
+      - name: Upload image scan reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-reports
+          path: |
+            frontend-image-report.json
+            backend-image-report.json
       
       - name: Show local images
         run: docker images
@@ -109,3 +135,69 @@ jobs:
 
       - name: Push backend
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/ef-backend:latest
+
+  report-summary:
+    needs: [SCA, test-backend, test-frontend, publish]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.0
+
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          path: reports
+
+      - name: Extract counts and fill template
+        run: |
+          extract_counts() {
+            local file=$1
+            local prefix=$2
+            echo "${prefix}_CRIT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' "$file")" >> $GITHUB_ENV
+            echo "${prefix}_HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' "$file")" >> $GITHUB_ENV
+            echo "${prefix}_MED=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' "$file")" >> $GITHUB_ENV
+            echo "${prefix}_LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' "$file")" >> $GITHUB_ENV
+          }
+
+          extract_counts reports/sca-report/sca-report.json SCA
+          extract_counts reports/image-reports/backend-image-report.json BACKEND_IMG
+          extract_counts reports/image-reports/frontend-image-report.json FRONTEND_IMG
+
+          echo "SCA_SECRETS=$(jq '[.Results[]?.Secrets[]?] | length' reports/sca-report/sca-report.json)" >> $GITHUB_ENV
+          echo "SCA_MISCONFIG=$(jq '[.Results[]?.Misconfigurations[]?] | length' reports/sca-report/sca-report.json)" >> $GITHUB_ENV
+
+          if [ -f reports/backend-report/backend-report.xml ]; then
+            echo "BACKEND_PASS=$(grep -oP 'tests="\K[0-9]+' reports/backend-report/backend-report.xml | head -1)" >> $GITHUB_ENV
+            echo "BACKEND_FAIL=$(grep -oP 'failures="\K[0-9]+' reports/backend-report/backend-report.xml | head -1)" >> $GITHUB_ENV
+          fi
+
+          if [ -f reports/frontend-report/frontend-report.json ]; then
+            echo "FRONTEND_PASS=$(jq '.numPassedTests' reports/frontend-report/frontend-report.json)" >> $GITHUB_ENV
+            echo "FRONTEND_FAIL=$(jq '.numFailedTests' reports/frontend-report/frontend-report.json)" >> $GITHUB_ENV
+          fi
+
+      - name: Fill HTML template
+        run: |
+          sed -e "s/__RUN_NUMBER__/${{ github.run_number }}/" \
+              -e "s/__REPO__/${{ github.repository }}/" \
+              -e "s/__SHA__/${{ github.sha }}/" \
+              -e "s/__SCA_CRIT__/$SCA_CRIT/" -e "s/__SCA_HIGH__/$SCA_HIGH/" \
+              -e "s/__SCA_MED__/$SCA_MED/" -e "s/__SCA_LOW__/$SCA_LOW/" \
+              -e "s/__BACKEND_IMG_CRIT__/$BACKEND_IMG_CRIT/" -e "s/__BACKEND_IMG_HIGH__/$BACKEND_IMG_HIGH/" \
+              -e "s/__BACKEND_IMG_MED__/$BACKEND_IMG_MED/" -e "s/__BACKEND_IMG_LOW__/$BACKEND_IMG_LOW/" \
+              -e "s/__FRONTEND_IMG_CRIT__/$FRONTEND_IMG_CRIT/" -e "s/__FRONTEND_IMG_HIGH__/$FRONTEND_IMG_HIGH/" \
+              -e "s/__FRONTEND_IMG_MED__/$FRONTEND_IMG_MED/" -e "s/__FRONTEND_IMG_LOW__/$FRONTEND_IMG_LOW/" \
+              -e "s/__SCA_SECRETS__/$SCA_SECRETS/" -e "s/__SCA_MISCONFIG__/$SCA_MISCONFIG/" \
+              -e "s/__BACKEND_PASS__/${BACKEND_PASS:-N\/A}/" -e "s/__BACKEND_FAIL__/${BACKEND_FAIL:-N\/A}/" \
+              -e "s/__FRONTEND_PASS__/${FRONTEND_PASS:-N\/A}/" -e "s/__FRONTEND_FAIL__/${FRONTEND_FAIL:-N\/A}/" \
+              -e "s/__BACKEND_STATUS__/${{ needs.test-backend.result }}/" \
+              -e "s/__BACKEND_CLASS__/${{ needs.test-backend.result == 'success' && 'pass' || 'fail' }}/" \
+              -e "s/__FRONTEND_STATUS__/${{ needs.test-frontend.result }}/" \
+              -e "s/__FRONTEND_CLASS__/${{ needs.test-frontend.result == 'success' && 'pass' || 'fail' }}/" \
+              .github/workflows/email-template.html > final-report.html
+
+      - name: Upload final report (for local review before email)
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-report
+          path: final-report.html
