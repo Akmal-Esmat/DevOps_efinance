@@ -26,6 +26,27 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: '1'
           
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -r Backend/requirements.txt
+      - run: pip install -r Backend/requirements-dev.txt
+      - run: pytest Backend/
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --prefix Frontend
+      - run: npm test --prefix Frontend
+      
   publish:
     needs: SCA
     runs-on: ubuntu-latest
