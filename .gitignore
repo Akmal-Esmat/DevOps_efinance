@@ -6,3 +6,5 @@ Backend/__pycache__/
 Backend/*.pyc
 Backend/venv/
 Backend/.env
+
+reports/
