@@ -37,8 +37,10 @@ class ChatRequest(BaseModel):
 def chat(request: ChatRequest):
     try:
         response = client.chat.completions.create(
+            # meta-llama/llama-3.3-8b-instruct:free
             # google/gemma-4-26b-a4b-it:free
-            model="meta-llama/llama-3.3-8b-instruct:free",
+            # google/gemma-4-31b-it:free
+            model="google/gemma-4-31b-it:free",
             messages=[
                 {
                     "role": "user",
