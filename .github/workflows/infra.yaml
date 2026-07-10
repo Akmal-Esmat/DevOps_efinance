@@ -71,6 +71,20 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
 
+      - name: Start VM
+        run: |
+          az vm start \
+            --resource-group devops-rg \
+            --name terraform-vm
+      
+      - name: Wait for SSH
+        run: |
+          PUBLIC_IP=$(terraform -chdir=terraform output -raw public_ip)
+          until nc -z $PUBLIC_IP 22; do
+            echo "Waiting for SSH..."
+            sleep 10
+          done
+
       - name: Run Playbook
         working-directory: ansible
         run: |
