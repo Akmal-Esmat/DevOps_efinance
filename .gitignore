@@ -8,3 +8,6 @@ Backend/venv/
 Backend/.env
 
 reports/
+
+# Ansible generated inventory
+ansible/hosts.ini
