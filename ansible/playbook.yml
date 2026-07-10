@@ -1,0 +1,38 @@
+---
+- name: Configure VM
+  hosts: azure
+  become: yes
+
+  tasks:
+
+    - name: Update apt
+      apt:
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Enable Docker
+      service:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Create application directory
+      file:
+        path: /opt/ef-app
+        state: directory
+        mode: '0755'
+
+    - name: Copy compose file
+      copy:
+        src: files/compose.yaml
+        dest: /opt/ef-app/compose.yaml
+
+    - name: Start application
+      community.docker.docker_compose_v2:
+        project_src: /opt/ef-app
+        pull: always
+        state: present

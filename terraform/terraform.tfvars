@@ -1,0 +1,6 @@
+subscription_id = "3905c09f-1f00-4174-9ff1-a1685d35d51d"
+location            = "UAE North"
+resource_group_name = "devops-rg"
+vm_name = "terraform-vm"
+vm_size = "Standard_B2ats_v2"
+admin_username = "akmal"
