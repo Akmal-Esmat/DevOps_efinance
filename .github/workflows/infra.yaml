@@ -2,24 +2,29 @@ name: Infrastructure
 
 on:
   workflow_dispatch:
-
   push:
     paths:
       - "terraform/**"
       - "ansible/**"
+  workflow_run:
+    workflows: ["deploy to Dockerhub"]
+    types:
+      - completed
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  infra:
+  provision:
+    # Only the heavy Terraform apply — skip when triggered by a plain code deploy.
+    if: github.event_name != 'workflow_run'
     runs-on: ubuntu-latest
-
     defaults:
       run:
         shell: bash
-
+    outputs:
+      public_ip: ${{ steps.vm.outputs.ip }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -46,14 +51,53 @@ jobs:
         working-directory: terraform
         run: terraform apply -auto-approve
 
-      - name: Generate Ansible Inventory
+      - name: Get VM public IP
+        id: vm
+        working-directory: terraform
+        run: echo "ip=$(terraform output -raw public_ip)" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: [provision]
+    if: always() && (needs.provision.result == 'success' || needs.provision.result == 'skipped')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Get VM public IP
+        id: vm
         working-directory: terraform
         run: |
-          PUBLIC_IP=$(terraform output -raw public_ip)
+          IP="${{ needs.provision.outputs.public_ip }}"
+          if [ -z "$IP" ]; then
+            IP=$(terraform output -raw public_ip)
+          fi
+          echo "ip=$IP" >> "$GITHUB_OUTPUT"
 
-          cat > ../ansible/hosts.ini <<EOF
+      - name: Generate Ansible Inventory
+        run: |
+          cat > ansible/hosts.ini <<EOF
           [azure]
-          vm ansible_host=$PUBLIC_IP ansible_user=akmal ansible_ssh_private_key_file=~/.ssh/id_ed25519
+          vm ansible_host=${{ steps.vm.outputs.ip }} ansible_user=akmal ansible_ssh_private_key_file=~/.ssh/id_ed25519
           EOF
 
       - name: Install Ansible
@@ -62,16 +106,15 @@ jobs:
           sudo apt-get install -y ansible
 
       - name: Install Docker Collection
-        run: |
-          ansible-galaxy collection install community.docker
+        run: ansible-galaxy collection install community.docker
 
       - name: Create SSH Key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          
-      - name: Start VM
+
+      - name: Ensure VM is running
         run: |
           az vm start \
             --resource-group devops-rg \
@@ -85,27 +128,22 @@ jobs:
               --name terraform-vm \
               --query "instanceView.statuses[?starts_with(code,'PowerState/')].displayStatus" \
               -o tsv)
-      
             echo "Current status: $STATUS"
-      
             if [ "$STATUS" = "VM running" ]; then
               break
             fi
-      
             sleep 5
           done
-            
+
       - name: Wait for SSH
         run: |
-          PUBLIC_IP=$(terraform -chdir=terraform output -raw public_ip)
-          until nc -z $PUBLIC_IP 22; do
+          until nc -z ${{ steps.vm.outputs.ip }} 22; do
             echo "Waiting for SSH..."
             sleep 10
           done
 
       - name: Add SSH known host
-        run: |
-          ssh-keyscan $(terraform -chdir=terraform output -raw public_ip) >> ~/.ssh/known_hosts
+        run: ssh-keyscan ${{ steps.vm.outputs.ip }} >> ~/.ssh/known_hosts
 
       - name: Run Playbook
         working-directory: ansible
