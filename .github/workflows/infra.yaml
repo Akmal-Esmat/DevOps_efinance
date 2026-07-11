@@ -70,16 +70,30 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-
-      - name: Add SSH known host
-        run: |
-          ssh-keyscan $(terraform -chdir=terraform output -raw public_ip) >> ~/.ssh/known_hosts
           
       - name: Start VM
         run: |
           az vm start \
             --resource-group devops-rg \
             --name terraform-vm
+
+      - name: Wait for VM to be running
+        run: |
+          while true; do
+            STATUS=$(az vm get-instance-view \
+              --resource-group devops-rg \
+              --name terraform-vm \
+              --query "instanceView.statuses[?starts_with(code,'PowerState/')].displayStatus" \
+              -o tsv)
+      
+            echo "Current status: $STATUS"
+      
+            if [ "$STATUS" = "VM running" ]; then
+              break
+            fi
+      
+            sleep 5
+          done
             
       - name: Wait for SSH
         run: |
@@ -89,7 +103,13 @@ jobs:
             sleep 10
           done
 
+      - name: Add SSH known host
+        run: |
+          ssh-keyscan $(terraform -chdir=terraform output -raw public_ip) >> ~/.ssh/known_hosts
+
       - name: Run Playbook
         working-directory: ansible
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           ansible-playbook -i hosts.ini playbook.yml
