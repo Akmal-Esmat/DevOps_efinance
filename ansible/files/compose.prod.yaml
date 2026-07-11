@@ -1,12 +1,12 @@
 services:
   frontend:
-    image: akmall123/ef-frontend:latest
+    image: akmall123/ef-frontend:${IMAGE_TAG}
     restart: unless-stopped
     ports:
       - "3000:3000"
 
   backend:
-    image: akmall123/ef-backend:latest
+    image: akmall123/ef-backend:${IMAGE_TAG}
     restart: unless-stopped
     ports:
       - "8000:8000"

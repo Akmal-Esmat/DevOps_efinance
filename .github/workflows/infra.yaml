@@ -150,4 +150,8 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          ansible-playbook -i hosts.ini playbook.yml -e "openrouter_api_key=${{ secrets.OPENROUTER_API_KEY }}"
+          SHORT_SHA=$(echo "${{ github.event.workflow_run.head_sha || github.sha }}" | cut -c1-7)
+
+          ansible-playbook -i hosts.ini playbook.yml \
+            -e "image_tag=$SHORT_SHA" \
+            -e "openrouter_api_key=${{ secrets.OPENROUTER_API_KEY }}"

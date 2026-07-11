@@ -80,6 +80,7 @@
         mode: "0600"
         content: |
           OPENROUTER_API_KEY={{ openrouter_api_key }}
+          IMAGE_TAG={{ image_tag }}
 
     - name: Start application
       community.docker.docker_compose_v2:

@@ -129,16 +129,24 @@ jobs:
         run: docker images
       
       - name: Tag frontend
-        run: docker tag ef-frontend:latest ${{ secrets.DOCKERHUB_USERNAME }}/ef-frontend
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          docker tag ef-frontend:latest ${{ secrets.DOCKERHUB_USERNAME }}/ef-frontend:$SHORT_SHA
       
       - name: Push frontend
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/ef-frontend:latest
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/ef-frontend:$SHORT_SHA
 
       - name: Tag backend
-        run: docker tag ef-backend:latest ${{ secrets.DOCKERHUB_USERNAME }}/ef-backend
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          docker tag ef-backend:latest ${{ secrets.DOCKERHUB_USERNAME }}/ef-backend:$SHORT_SHA
 
       - name: Push backend
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/ef-backend:latest
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/ef-backend:$SHORT_SHA
   
   report-summary:
     needs: [SCA, test-backend, test-frontend, publish]
