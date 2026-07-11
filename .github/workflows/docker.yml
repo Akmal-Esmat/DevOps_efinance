@@ -139,23 +139,7 @@ jobs:
 
       - name: Push backend
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/ef-backend:latest
-        
-  deploy:
-    needs: [publish]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan ${{ secrets.VM_PUBLIC_IP }} >> ~/.ssh/known_hosts
-
-      - name: Pull latest images and restart
-        run: |
-          ssh akmal@${{ secrets.VM_PUBLIC_IP }} \
-            "cd /opt/ef-app && docker compose pull && docker compose up -d --force-recreate"
-
+  
   report-summary:
     needs: [SCA, test-backend, test-frontend, publish]
     if: always()
