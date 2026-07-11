@@ -74,6 +74,13 @@
         src: files/compose.prod.yaml
         dest: /opt/ef-app/compose.yaml
 
+    - name: Create application .env file
+      copy:
+        dest: /opt/ef-app/.env
+        mode: "0600"
+        content: |
+          OPENROUTER_API_KEY={{ openrouter_api_key }}
+
     - name: Start application
       community.docker.docker_compose_v2:
         project_src: /opt/ef-app
