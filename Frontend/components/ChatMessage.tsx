@@ -23,12 +23,19 @@ export function ChatMessage({ message }: { message: Message }) {
         `}
       >
         {isUser ? (
-          message.text
-        ) : (
-          <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0">
-            <ReactMarkdown>{message.text}</ReactMarkdown>
-          </div>
-        )}
+                  message.text
+                ) : (
+                  <>
+                    <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+                      <ReactMarkdown>{message.text}</ReactMarkdown>
+                    </div>
+                    {message.fallbackNotice && (
+                      <p className="mt-2 text-xs text-slate-400 italic">
+                        {message.fallbackNotice}
+                      </p>
+                    )}
+                  </>
+                )}
       </div>
     </div>
   );
