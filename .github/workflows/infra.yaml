@@ -74,11 +74,12 @@ jobs:
       - name: Add SSH known host
         run: |
           ssh-keyscan $(terraform -chdir=terraform output -raw public_ip) >> ~/.ssh/known_hosts
-            - name: Start VM
-              run: |
-                az vm start \
-                  --resource-group devops-rg \
-                  --name terraform-vm
+          
+      - name: Start VM
+        run: |
+          az vm start \
+            --resource-group devops-rg \
+            --name terraform-vm
             
       - name: Wait for SSH
         run: |
