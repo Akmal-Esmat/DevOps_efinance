@@ -14,6 +14,12 @@
         name: docker.io
         state: present
 
+    - name: Add user to docker group
+      user:
+        name: akmal
+        groups: docker
+        append: yes
+
     - name: Enable Docker
       service:
         name: docker
@@ -26,9 +32,9 @@
         state: directory
         mode: '0755'
 
-    - name: Copy compose file
+    - name: Copy production compose file
       copy:
-        src: files/compose.yaml
+        src: files/compose.prod.yaml
         dest: /opt/ef-app/compose.yaml
 
     - name: Start application
