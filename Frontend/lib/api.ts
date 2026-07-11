@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.PUBLIC_API_URL || "http://localhost:8000";
 
 export interface ModelOption {
   id: string;
@@ -13,13 +13,13 @@ export interface ChatResult {
 }
 
 export async function fetchModels(): Promise<{ models: ModelOption[]; default: string }> {
-  const res = await fetch(`${API_URL}/models`);
+  const res = await fetch(`/api/models`);
   if (!res.ok) throw new Error("Failed to load models");
   return res.json();
 }
 
 export async function sendChatMessage(message: string, model?: string): Promise<ChatResult> {
-  const res = await fetch(`${API_URL}/chat`, {
+  const res = await fetch(`/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ message, model }),
