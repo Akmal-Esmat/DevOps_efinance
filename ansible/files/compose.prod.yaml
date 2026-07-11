@@ -1,0 +1,14 @@
+services:
+  frontend:
+    image: akmall123/ef-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+
+  backend:
+    image: akmall123/ef-backend:latest
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
