@@ -58,7 +58,9 @@ jobs:
 
   deploy:
     needs: [provision]
-    if: always() && (needs.provision.result == 'success' || needs.provision.result == 'skipped')
+    if: >
+    always() && (needs.provision.result == 'success' || needs.provision.result == 'skipped')
+    (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     defaults:
       run:
