@@ -2,8 +2,6 @@ services:
   frontend:
     image: akmall123/ef-frontend:${IMAGE_TAG}
     restart: unless-stopped
-    environment:
-      BACKEND_INTERNAL_URL: http://backend:8000
     ports:
       - "3000:3000"
 
