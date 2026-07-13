@@ -142,6 +142,7 @@ jobs:
 unit tests + running them
 templae.html to fill with tests, scans results
 email sending
+
 # Docker compose
     1- every time it run it trigger the Dockerfiles in the context: <foldername/> and create a new image
     2- give them pre installed images:
