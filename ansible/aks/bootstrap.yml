@@ -43,6 +43,14 @@
       command: kubectl create namespace efinance
       ignore_errors: yes
 
+    - name: Create backend secret
+      shell: |
+        kubectl create secret generic backend-secrets \
+        -n efinance \
+        --from-literal=OPENROUTER_API_KEY="{{ openrouter_api_key }}" \
+        --dry-run=client \
+        -o yaml | kubectl apply -f -
+
     - name: Deploy Argo CD Application
       command: kubectl apply -f argocd/application.yaml
 
