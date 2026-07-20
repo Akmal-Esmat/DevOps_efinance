@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: backend
+  namespace: efinance
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: backend
+
+  template:
+    metadata:
+      labels:
+        app: backend
+
+    spec:
+      containers:
+
+      - name: backend
+
+        image: efinanceacr12345.azurecr.io/ef-backend:IMAGE_TAG
+
+        ports:
+        - containerPort: 8000
+
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+
+        - name: OPENROUTER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: OPENROUTER_API_KEY
+
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
