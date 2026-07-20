@@ -11,3 +11,9 @@ reports/
 
 # Ansible generated inventory
 ansible/hosts.ini
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.tfstate.lock.info
