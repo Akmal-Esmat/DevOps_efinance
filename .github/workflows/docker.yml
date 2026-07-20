@@ -147,7 +147,46 @@ jobs:
         run: |
           SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/ef-backend:$SHORT_SHA
-  
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name ${{ secrets.ACR_NAME }}
+
+      - name: Tag frontend for ACR
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+
+          docker tag ef-frontend:latest \
+            ${{ secrets.ACR_NAME }}.azurecr.io/ef-frontend:$SHORT_SHA
+
+      - name: Push frontend to ACR
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+
+          docker push \
+            ${{ secrets.ACR_NAME }}.azurecr.io/ef-frontend:$SHORT_SHA
+
+      - name: Tag backend for ACR
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+
+          docker tag ef-backend:latest \
+            ${{ secrets.ACR_NAME }}.azurecr.io/ef-backend:$SHORT_SHA
+
+      - name: Push backend to ACR
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+
+          docker push \
+            ${{ secrets.ACR_NAME }}.azurecr.io/ef-backend:$SHORT_SHA
+        
   report-summary:
     needs: [SCA, test-backend, test-frontend, publish]
     if: always()
