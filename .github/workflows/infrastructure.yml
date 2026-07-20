@@ -86,20 +86,12 @@ jobs:
 
   aks-bootstrap:
 
-
     needs: terraform
-
 
     if: |
       always() &&
-      (
-        needs.terraform.result == 'success' ||
-        needs.terraform.result == 'skipped'
-      ) &&
-      (
-        github.event_name != 'workflow_run' ||
-        github.event.workflow_run.conclusion == 'success'
-      )
+      needs.terraform.result != 'failure' &&
+      needs.terraform.result != 'cancelled'
 
 
     runs-on: ubuntu-latest

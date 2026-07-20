@@ -2,14 +2,14 @@ name: Infrastructure
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "terraform/**"
-      - "ansible/**"
-  workflow_run:
-    workflows: ["deploy to Dockerhub"]
-    types:
-      - completed
+  # push:
+  #   paths:
+  #     - "terraform/**"
+  #     - "ansible/**"
+  # workflow_run:
+  #   workflows: ["deploy to Dockerhub"]
+  #   types:
+  #     - completed
 
 permissions:
   id-token: write
