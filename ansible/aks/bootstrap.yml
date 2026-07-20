@@ -12,6 +12,7 @@
     - name: Install Argo CD
       command: >
         kubectl apply
+        --server-side
         -n argocd
         -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
@@ -23,13 +24,19 @@
 
     - name: Wait for Argo CD Application Controller
       command: >
-        kubectl rollout status deployment/argocd-application-controller
+        kubectl rollout status statefulset/argocd-application-controller
         -n argocd
         --timeout=600s
 
     - name: Wait for Argo CD Repo Server
       command: >
         kubectl rollout status deployment/argocd-repo-server
+        -n argocd
+        --timeout=600s
+
+    - name: Wait for Argo CD ApplicationSet Controller
+      command: >
+        kubectl rollout status deployment/argocd-applicationset-controller
         -n argocd
         --timeout=600s
 
@@ -52,7 +59,7 @@
         -o yaml | kubectl apply -f -
 
     - name: Deploy Argo CD Application
-      command: kubectl apply -f argocd/application.yaml
+      command: kubectl apply -f "{{ playbook_dir }}/../../argocd/application.yaml"
 
     - name: Wait for frontend deployment
       command: >
