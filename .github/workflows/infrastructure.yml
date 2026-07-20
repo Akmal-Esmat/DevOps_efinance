@@ -21,7 +21,9 @@ permissions:
 jobs:
 
   terraform:
-
+    permissions:
+      id-token: write
+      contents: read
 
     # Run terraform normally
     # Skip when triggered after docker workflow
@@ -79,6 +81,9 @@ jobs:
 
 
   aks-bootstrap:
+    permissions:
+      id-token: write
+      contents: read
 
 
     needs: terraform
