@@ -4,12 +4,6 @@ on:
 
   workflow_dispatch:
 
-  push:
-    paths:
-      - "terraform/**"
-      - "ansible/**"
-      - "argocd/**"
-
   workflow_run:
     workflows:
       - "deploy to Dockerhub"
