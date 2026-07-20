@@ -22,7 +22,7 @@ spec:
 
       - name: backend
 
-        image: efinanceacr12345.azurecr.io/ef-backend:IMAGE_TAG
+        image: efinanceacr12345.azurecr.io/ef-backend:7cfc9d2
 
         ports:
         - containerPort: 8000
