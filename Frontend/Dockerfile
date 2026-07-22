@@ -21,6 +21,9 @@ EXPOSE 3000
 RUN npm run build
 
 
+# Give the node user permission to write to the app directory
+RUN chown -R node:node /app
+
 # This line switches to the built-in 'node' user to satisfy Trivy
 USER node
 
